@@ -1,12 +1,9 @@
-import { ArrowRight, ShieldCheck, Zap, Clock, TrendingUp, type LucideIcon } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, Clock, TrendingUp, Phone, Send, type LucideIcon } from 'lucide-react';
 import { ExchangeCalculator } from '@/components/ExchangeCalculator';
-import type { ExchangeData } from '@/types';
+import { trackGoal } from '@/lib/analytics';
+import { PHONE_DISPLAY, PHONE_URL, TELEGRAM_URL } from '@/lib/contacts';
 
-interface HeroProps {
-  onCalculate: (data: ExchangeData) => void;
-}
-
-export function Hero({ onCalculate }: HeroProps) {
+export function Hero() {
   return (
     <section className="relative pt-28 sm:pt-36 pb-10 sm:pb-14 hero-bg overflow-hidden">
       <div className="absolute inset-0 grid-pattern opacity-40" />
@@ -28,7 +25,7 @@ export function Hero({ onCalculate }: HeroProps) {
 
           <p className="mt-5 text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl mx-auto animate-fade-up delay-200">
             Оплата поставщикам, рубли → юани, пополнение Alipay и WeChat Pay.
-            Работаем с наличными в Москве и Санкт-Петербурге. Рассчитайте платёж прямо сейчас — без звонков и ожидания.
+            Оплата поставщикам, рубли → юани и пополнение Alipay и WeChat Pay. Рассчитайте платёж прямо сейчас — без звонков и ожидания.
           </p>
 
           <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center animate-fade-up delay-300">
@@ -48,6 +45,11 @@ export function Hero({ onCalculate }: HeroProps) {
             </button>
           </div>
 
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-sm">
+            <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackGoal('telegram_click', { source: 'hero' })} className="inline-flex items-center gap-2 text-[#0052CC] font-semibold hover:underline"><Send className="w-4 h-4" /> Telegram</a>
+            <a href={PHONE_URL} onClick={() => trackGoal('phone_click', { source: 'hero' })} className="inline-flex items-center gap-2 text-gray-600 font-semibold hover:text-[#0052CC]"><Phone className="w-4 h-4" /> {PHONE_DISPLAY}</a>
+          </div>
+
           <div className="mt-10 grid grid-cols-3 gap-4 sm:gap-8 max-w-lg mx-auto animate-fade-up delay-400">
             <Stat icon={TrendingUp} value="1,5%" label="Комиссия от" />
             <Stat icon={ShieldCheck} value="100%" label="Согласование до" />
@@ -56,7 +58,7 @@ export function Hero({ onCalculate }: HeroProps) {
         </div>
       </div>
 
-      <ExchangeCalculator onCalculate={onCalculate} />
+      <ExchangeCalculator />
     </section>
   );
 }

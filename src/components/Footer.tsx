@@ -1,4 +1,6 @@
-import { Globe } from 'lucide-react';
+import { Globe, Phone, Send } from 'lucide-react';
+import { trackGoal } from '@/lib/analytics';
+import { PHONE_DISPLAY, PHONE_URL, TELEGRAM_URL } from '@/lib/contacts';
 
 export function Footer() {
   return (
@@ -21,12 +23,14 @@ export function Footer() {
             <button onClick={() => document.querySelector('#process')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-gray-400 hover:text-white transition-colors">Процесс</button>
             <button onClick={() => document.querySelector('#faq')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-gray-400 hover:text-white transition-colors">FAQ</button>
             <button onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-gray-400 hover:text-white transition-colors">Контакты</button>
+            <a href={PHONE_URL} onClick={() => trackGoal('phone_click', { source: 'footer' })} className="inline-flex items-center gap-1.5 text-sm text-gray-300 hover:text-white"><Phone className="w-4 h-4" /> {PHONE_DISPLAY}</a>
+            <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackGoal('telegram_click', { source: 'footer' })} className="inline-flex items-center gap-1.5 text-sm text-blue-300 hover:text-white"><Send className="w-4 h-4" /> Telegram</a>
           </div>
         </div>
 
         <div className="mt-8 pt-8 border-t border-white/10 text-center">
           <p className="text-xs text-gray-500">
-            Платёжное сопровождение, наличные в Москве и Санкт-Петербурге, организация поставок между Китаем и Россией. © {new Date().getFullYear()} ООО «ПРОРЕСТ»
+            Платёжное сопровождение и организация поставок между Китаем и Россией. © {new Date().getFullYear()} ООО «ПРОРЕСТ»
           </p>
           <p className="text-xs text-gray-600 mt-2">
             Информация на сайте не является публичной офертой.

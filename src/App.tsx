@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { Services } from '@/components/Services';
@@ -8,17 +7,16 @@ import { Pricing } from '@/components/Pricing';
 import { Faq } from '@/components/Faq';
 import { Contact } from '@/components/Contact';
 import { Footer } from '@/components/Footer';
-import { ExchangeModal } from '@/components/ExchangeModal';
-import type { ExchangeData } from '@/types';
+import { Send } from 'lucide-react';
+import { trackGoal } from '@/lib/analytics';
+import { TELEGRAM_URL } from '@/lib/contacts';
 
 function App() {
-  const [exchangeData, setExchangeData] = useState<ExchangeData | null>(null);
-
   return (
     <div className="min-h-screen bg-[#FAFBFD]">
       <Header />
       <main>
-        <Hero onCalculate={setExchangeData} />
+        <Hero />
         <Services />
         <Conditions />
         <Process />
@@ -27,7 +25,9 @@ function App() {
         <Contact />
       </main>
       <Footer />
-      <ExchangeModal data={exchangeData} onClose={() => setExchangeData(null)} />
+      <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label="Написать в Telegram" onClick={() => trackGoal('telegram_click', { source: 'floating_button' })} className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full btn-gradient text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform">
+        <Send className="w-6 h-6" />
+      </a>
     </div>
   );
 }

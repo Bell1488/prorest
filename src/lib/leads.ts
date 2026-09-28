@@ -1,12 +1,10 @@
 import { readAttribution } from './analytics';
 
 export interface LeadPayload {
-  name: string;
-  phone: string;
+  name?: string;
+  contact: string;
   amount?: string;
   paymentMethod?: string;
-  contactMethod: 'telegram' | 'max';
-  contactId: string;
   consent: boolean;
   exchange?: {
     fromAmount: number;

@@ -108,22 +108,18 @@ function clean(value, max = 500) {
 
 function validateLead(body) {
   const name = clean(body.name, 100);
-  const phone = clean(body.phone, 40);
-  const contactId = clean(body.contactId, 120);
-  if (!name || !phone || !contactId || body.consent !== true) return { error: 'Заполните обязательные поля и подтвердите согласие' };
-  if (!/^[+\d()\s-]{7,40}$/.test(phone)) return { error: 'Проверьте номер телефона' };
-  if (!['telegram', 'max'].includes(body.contactMethod)) return { error: 'Выберите способ связи' };
+  const contact = clean(body.contact, 120);
+  if (!contact || body.consent !== true) return { error: 'Укажите телефон или Telegram и подтвердите согласие' };
   if (clean(body.website)) return { error: 'Некорректная заявка' };
-  return { name, phone, contactId, contactMethod: body.contactMethod };
+  return { name, contact };
 }
 
 function formatMessage(body, lead, ip) {
   const lines = [
     'Новая заявка с сайта ProRest',
     '',
-    `Имя: ${lead.name}`,
-    `Телефон: ${lead.phone}`,
-    `Связь: ${lead.contactMethod === 'telegram' ? 'Telegram' : 'MAX'} — ${lead.contactId}`,
+    `Имя: ${lead.name || 'не указано'}`,
+    `Телефон или Telegram: ${lead.contact}`,
   ];
   if (body.amount) lines.push(`Сумма: ${clean(body.amount, 40)} CNY`);
   if (body.paymentMethod) lines.push(`Способ оплаты: ${clean(body.paymentMethod, 100)}`);
@@ -214,7 +210,6 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, {
       rates: rateState.rates,
       officialRubRates: rateState.officialRubRates,
-      discountPercent: rateDiscountPercent,
       updatedAt: rateState.updatedAt,
       source: 'https://www.cbr.ru/scripts/XML_daily.asp',
     });

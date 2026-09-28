@@ -1,8 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { ArrowRight, ArrowLeftRight, Info, TrendingUp, Zap } from 'lucide-react';
+import { ArrowRight, ArrowLeftRight, Info, TrendingUp, Zap, Send, UserRound } from 'lucide-react';
 import {
   type Currency,
-  type ExchangeData,
   type RateTable,
   CURRENCY_SYMBOLS,
   RATES,
@@ -10,14 +9,11 @@ import {
   formatNumber,
 } from '@/types';
 import { trackGoal } from '@/lib/analytics';
-
-interface ExchangeCalculatorProps {
-  onCalculate: (data: ExchangeData) => void;
-}
+import { TELEGRAM_URL } from '@/lib/contacts';
 
 const CURRENCIES: Currency[] = ['RUB', 'CNY', 'USD'];
 
-export function ExchangeCalculator({ onCalculate }: ExchangeCalculatorProps) {
+export function ExchangeCalculator() {
   const [fromCurrency, setFromCurrency] = useState<Currency>('RUB');
   const [toCurrency, setToCurrency] = useState<Currency>('CNY');
   const [fromAmount, setFromAmount] = useState<string>('50000');
@@ -82,18 +78,7 @@ export function ExchangeCalculator({ onCalculate }: ExchangeCalculatorProps) {
     const amount = parseFloat(fromAmount) || 0;
     if (amount <= 0) return;
     trackGoal('calculator_submit', { fromCurrency, toCurrency, method });
-    onCalculate({
-      fromAmount: amount,
-      fromCurrency,
-      toAmount: calculated.toAmount,
-      toCurrency,
-      rate,
-      commissionPercent: calculated.commissionPercent,
-      commissionAmount: calculated.commissionAmount,
-      total: calculated.total,
-      method,
-    });
-  }, [fromAmount, fromCurrency, toCurrency, rate, calculated, method, onCalculate]);
+  }, [fromAmount, fromCurrency, toCurrency, method]);
 
   return (
     <div id="calculator" className="relative py-10 sm:py-14 scroll-mt-20">
@@ -214,6 +199,10 @@ export function ExchangeCalculator({ onCalculate }: ExchangeCalculatorProps) {
           <p className="text-center text-xs text-gray-400 mt-3">
             Предварительный расчёт. Финальные условия подтвердит менеджер после проверки реквизитов.
           </p>
+          <div className="mt-4 grid sm:grid-cols-2 gap-3">
+            <a href={`${TELEGRAM_URL}?text=${encodeURIComponent(`Здравствуйте! Расчёт: ${formatNumber(parseFloat(fromAmount) || 0)} ${fromCurrency} → ${formatNumber(calculated.toAmount)} ${toCurrency}, курс ${formatNumber(rate)}, комиссия ${calculated.commissionPercent}%`)}`} target="_blank" rel="noopener noreferrer" onClick={() => trackGoal('telegram_click', { source: 'calculator' })} className="px-4 py-3 rounded-xl text-sm font-semibold text-white btn-gradient flex items-center justify-center gap-2"><Send className="w-4 h-4" />Зафиксировать курс в Telegram</a>
+            <button type="button" onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-3 rounded-xl text-sm font-semibold text-[#0052CC] bg-blue-50 hover:bg-blue-100 flex items-center justify-center gap-2"><UserRound className="w-4 h-4" />Оставить контакт</button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Menu, X, Globe } from 'lucide-react';
+import { Menu, X, Globe, Phone, Send } from 'lucide-react';
+import { trackGoal } from '@/lib/analytics';
+import { PHONE_DISPLAY, PHONE_URL, TELEGRAM_URL } from '@/lib/contacts';
 
 const navLinks = [
   { href: '#calculator', label: 'Калькулятор' },
@@ -58,6 +60,8 @@ export function Header() {
           >
             Обмен
           </button>
+          <a href={PHONE_URL} onClick={() => trackGoal('phone_click', { source: 'header_desktop' })} className="ml-3 inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 hover:text-[#0052CC]"><Phone className="w-4 h-4" /> {PHONE_DISPLAY}</a>
+          <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackGoal('telegram_click', { source: 'header_desktop' })} className="ml-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[#0052CC] hover:underline"><Send className="w-4 h-4" /> Telegram</a>
         </nav>
 
         <button
@@ -89,6 +93,10 @@ export function Header() {
           >
             Обмен
           </button>
+          <div className="flex flex-col gap-3 pt-3">
+            <a href={PHONE_URL} onClick={() => trackGoal('phone_click', { source: 'header_mobile' })} className="inline-flex items-center gap-2 text-base font-semibold text-gray-700"><Phone className="w-4 h-4" /> {PHONE_DISPLAY}</a>
+            <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackGoal('telegram_click', { source: 'header_mobile' })} className="inline-flex items-center gap-2 text-base font-semibold text-[#0052CC]"><Send className="w-4 h-4" /> Telegram</a>
+          </div>
         </nav>
       </div>
     </header>
