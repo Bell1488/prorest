@@ -34,6 +34,8 @@ export const RATES: Record<string, number> = {
   USD_RUB: 96.20,
 };
 
+export type RateTable = Record<string, number>;
+
 export const COMMISSIONS: Record<string, number> = {
   invoice: 1.5,
   alipay: 1.8,
@@ -48,9 +50,9 @@ export const METHOD_LABELS: Record<string, string> = {
   card: 'Китайская карта',
 };
 
-export function getRate(from: Currency, to: Currency): number {
+export function getRate(from: Currency, to: Currency, rates: RateTable = RATES): number {
   if (from === to) return 1;
-  return RATES[`${from}_${to}`] ?? 1;
+  return rates[`${from}_${to}`] ?? 1;
 }
 
 export function formatNumber(n: number): string {

@@ -71,6 +71,8 @@ TELEGRAM_CHAT_ID=-1001234567890
 SOCKS5H_PROXY=socks5h://user:password@proxy.example.com:1080
 PORT=8787
 VITE_YANDEX_METRIKA_ID=12345678
+RATE_DISCOUNT_PERCENT=10
+RATE_UPDATE_INTERVAL_MS=3600000
 ```
 
 Для прокси без авторизации:
@@ -88,6 +90,8 @@ chmod 600 /etc/prorest.env
 Если в пароле прокси есть `@`, `:`, `/`, `?` или `#`, символы нужно URL-кодировать.
 
 Токен Telegram и SOCKS5-прокси нельзя добавлять в GitHub или frontend.
+
+Курс ЦБ РФ загружается сервером из `https://www.cbr.ru/scripts/XML_daily.asp` и кэшируется на один час. `RATE_DISCOUNT_PERCENT=10` означает, что рассчитанный курс равен официальному курсу ЦБ минус 10%. ЦБ РФ публикует официальные значения не каждый час, поэтому в течение дня несколько обновлений могут вернуть одно и то же значение.
 
 ## 5. Production-сборка
 

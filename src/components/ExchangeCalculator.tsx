@@ -1,9 +1,11 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { ArrowRight, ArrowLeftRight, Info, TrendingUp, Zap } from 'lucide-react';
 import {
   type Currency,
   type ExchangeData,
+  type RateTable,
   CURRENCY_SYMBOLS,
+  RATES,
   getRate,
   formatNumber,
 } from '@/types';
@@ -20,13 +22,43 @@ export function ExchangeCalculator({ onCalculate }: ExchangeCalculatorProps) {
   const [toCurrency, setToCurrency] = useState<Currency>('CNY');
   const [fromAmount, setFromAmount] = useState<string>('50000');
   const [method, setMethod] = useState<string>('invoice');
+  const [rates, setRates] = useState<RateTable>(RATES);
+  const [rateUpdatedAt, setRateUpdatedAt] = useState<string | null>(null);
+  const [rateDiscountPercent, setRateDiscountPercent] = useState(10);
+  const [rateStatus, setRateStatus] = useState<'loading' | 'live' | 'fallback'>('loading');
+
+  useEffect(() => {
+    let active = true;
+
+    const loadRates = async () => {
+      try {
+        const response = await fetch('/api/rates', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Rates API unavailable');
+        const data = await response.json() as { rates?: RateTable; updatedAt?: string; discountPercent?: number };
+        if (!data.rates || !active) return;
+        setRates(data.rates);
+        setRateUpdatedAt(data.updatedAt || null);
+        if (typeof data.discountPercent === 'number') setRateDiscountPercent(data.discountPercent);
+        setRateStatus('live');
+      } catch {
+        if (active) setRateStatus('fallback');
+      }
+    };
+
+    void loadRates();
+    const timer = window.setInterval(loadRates, 60 * 60 * 1000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   const swapCurrencies = () => {
     setFromCurrency(toCurrency);
     setToCurrency(fromCurrency);
   };
 
-  const rate = useMemo(() => getRate(fromCurrency, toCurrency), [fromCurrency, toCurrency]);
+  const rate = useMemo(() => getRate(fromCurrency, toCurrency, rates), [fromCurrency, toCurrency, rates]);
 
   const calculated = useMemo(() => {
     const amount = parseFloat(fromAmount) || 0;
@@ -126,6 +158,14 @@ export function ExchangeCalculator({ onCalculate }: ExchangeCalculatorProps) {
               К доплате: <span className="font-semibold text-gray-700">{CURRENCY_SYMBOLS[fromCurrency]}{formatNumber(calculated.commissionAmount)}</span>
             </span>
           </div>
+
+          <p className={`mt-2 text-xs ${rateStatus === 'live' ? 'text-green-600' : 'text-gray-400'}`}>
+            {rateStatus === 'live' && rateUpdatedAt
+              ? `Курс ЦБ РФ минус ${rateDiscountPercent}%. Обновлен ${new Date(rateUpdatedAt).toLocaleString('ru-RU')}`
+              : rateStatus === 'loading'
+                ? 'Загружаем актуальный курс ЦБ РФ…'
+                : 'Курс ЦБ РФ временно недоступен. Используется резервный курс для предварительного расчета.'}
+          </p>
 
           <div className="mt-5">
             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">Способ оплаты</label>

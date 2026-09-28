@@ -3,6 +3,7 @@ import https from 'node:https';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { XMLParser } from 'fast-xml-parser';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
@@ -12,7 +13,72 @@ const botToken = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
 const proxyUrl = process.env.SOCKS5H_PROXY;
 const telegramAgent = proxyUrl ? new SocksProxyAgent(proxyUrl) : undefined;
+const cbrAgent = proxyUrl ? new SocksProxyAgent(proxyUrl) : undefined;
+const rateDiscountPercent = Math.min(Math.max(Number(process.env.RATE_DISCOUNT_PERCENT || 10), 0), 100);
+const rateUpdateIntervalMs = Math.max(Number(process.env.RATE_UPDATE_INTERVAL_MS || 3600000), 60000);
+const rateState = { rates: null, officialRubRates: null, updatedAt: null };
+const xmlParser = new XMLParser({ ignoreAttributes: false });
 const rateLimit = new Map();
+
+function requestText(url, agent) {
+  return new Promise((resolve, reject) => {
+    const request = https.get(url, {
+      agent,
+      timeout: 15000,
+      headers: { 'User-Agent': 'ProRest/1.0' },
+    }, (response) => {
+      let data = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => { data += chunk; });
+      response.on('end', () => {
+        if (response.statusCode && response.statusCode >= 200 && response.statusCode < 300) resolve(data);
+        else reject(new Error(`HTTP ${response.statusCode} while loading rates`));
+      });
+    });
+    request.on('timeout', () => request.destroy(new Error('Rates request timed out')));
+    request.on('error', reject);
+  });
+}
+
+async function updateRates() {
+  try {
+    const xml = await requestText('https://www.cbr.ru/scripts/XML_daily.asp', cbrAgent);
+    const document = xmlParser.parse(xml);
+    const valutes = Array.isArray(document?.ValCurs?.Valute)
+      ? document.ValCurs.Valute
+      : document?.ValCurs?.Valute ? [document.ValCurs.Valute] : [];
+    const rubRates = { RUB: 1 };
+
+    for (const currency of ['USD', 'CNY']) {
+      const item = valutes.find((value) => value.CharCode === currency);
+      const value = Number(String(item?.Value || '').replace(',', '.').replace(/\s/g, ''));
+      const nominal = Number(item?.Nominal || 1);
+      if (!Number.isFinite(value) || !Number.isFinite(nominal) || value <= 0 || nominal <= 0) {
+        throw new Error(`Missing ${currency} rate from CBR response`);
+      }
+      rubRates[currency] = value / nominal;
+    }
+
+    const multiplier = 1 - rateDiscountPercent / 100;
+    const rates = {};
+    for (const from of ['RUB', 'CNY', 'USD']) {
+      for (const to of ['RUB', 'CNY', 'USD']) {
+        rates[`${from}_${to}`] = Number(((rubRates[from] / rubRates[to]) * multiplier).toFixed(8));
+      }
+    }
+
+    rateState.rates = rates;
+    rateState.officialRubRates = rubRates;
+    rateState.updatedAt = new Date().toISOString();
+    console.log(`CBR rates updated at ${rateState.updatedAt}; discount ${rateDiscountPercent}%`);
+  } catch (error) {
+    console.error(`Could not update CBR rates: ${error.message}`);
+  }
+}
+
+void updateRates();
+const rateTimer = setInterval(updateRates, rateUpdateIntervalMs);
+rateTimer.unref();
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -138,6 +204,17 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, { 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' });
     return res.end();
+  }
+
+  if (req.method === 'GET' && req.url === '/api/rates') {
+    if (!rateState.rates) return json(res, 503, { error: 'Курс ЦБ РФ пока не загружен' });
+    return json(res, 200, {
+      rates: rateState.rates,
+      officialRubRates: rateState.officialRubRates,
+      discountPercent: rateDiscountPercent,
+      updatedAt: rateState.updatedAt,
+      source: 'https://www.cbr.ru/scripts/XML_daily.asp',
+    });
   }
 
   if (req.method === 'POST' && req.url === '/api/leads') {
