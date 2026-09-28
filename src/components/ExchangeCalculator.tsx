@@ -23,8 +23,8 @@ export function ExchangeCalculator({ onCalculate }: ExchangeCalculatorProps) {
   const [fromAmount, setFromAmount] = useState<string>('50000');
   const [method, setMethod] = useState<string>('invoice');
   const [rates, setRates] = useState<RateTable>(RATES);
+  const [officialRubRates, setOfficialRubRates] = useState<RateTable | null>(null);
   const [rateUpdatedAt, setRateUpdatedAt] = useState<string | null>(null);
-  const [rateDiscountPercent, setRateDiscountPercent] = useState(10);
   const [rateStatus, setRateStatus] = useState<'loading' | 'live' | 'fallback'>('loading');
 
   useEffect(() => {
@@ -34,11 +34,11 @@ export function ExchangeCalculator({ onCalculate }: ExchangeCalculatorProps) {
       try {
         const response = await fetch('/api/rates', { cache: 'no-store' });
         if (!response.ok) throw new Error('Rates API unavailable');
-        const data = await response.json() as { rates?: RateTable; updatedAt?: string; discountPercent?: number };
+        const data = await response.json() as { rates?: RateTable; officialRubRates?: RateTable; updatedAt?: string };
         if (!data.rates || !active) return;
         setRates(data.rates);
+        setOfficialRubRates(data.officialRubRates || null);
         setRateUpdatedAt(data.updatedAt || null);
-        if (typeof data.discountPercent === 'number') setRateDiscountPercent(data.discountPercent);
         setRateStatus('live');
       } catch {
         if (active) setRateStatus('fallback');
@@ -59,6 +59,12 @@ export function ExchangeCalculator({ onCalculate }: ExchangeCalculatorProps) {
   };
 
   const rate = useMemo(() => getRate(fromCurrency, toCurrency, rates), [fromCurrency, toCurrency, rates]);
+  const officialRate = useMemo(() => {
+    if (!officialRubRates) return null;
+    const from = officialRubRates[fromCurrency];
+    const to = officialRubRates[toCurrency];
+    return from && to ? from / to : null;
+  }, [fromCurrency, toCurrency, officialRubRates]);
 
   const calculated = useMemo(() => {
     const amount = parseFloat(fromAmount) || 0;
@@ -161,11 +167,16 @@ export function ExchangeCalculator({ onCalculate }: ExchangeCalculatorProps) {
 
           <p className={`mt-2 text-xs ${rateStatus === 'live' ? 'text-green-600' : 'text-gray-400'}`}>
             {rateStatus === 'live' && rateUpdatedAt
-              ? `Курс ЦБ РФ минус ${rateDiscountPercent}%. Обновлен ${new Date(rateUpdatedAt).toLocaleString('ru-RU')}`
+              ? `Текущий курс ЦБ РФ. Обновлен ${new Date(rateUpdatedAt).toLocaleString('ru-RU')}`
               : rateStatus === 'loading'
                 ? 'Загружаем актуальный курс ЦБ РФ…'
                 : 'Курс ЦБ РФ временно недоступен. Используется резервный курс для предварительного расчета.'}
           </p>
+          {officialRate && fromCurrency === 'RUB' && toCurrency === 'CNY' && (
+            <p className="mt-1 text-xs text-gray-500">
+              Курс ЦБ РФ: 1 RUB = {formatNumber(officialRate)} CNY · Курс покупки юаней: 1 RUB = {formatNumber(rate)} CNY
+            </p>
+          )}
 
           <div className="mt-5">
             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">Способ оплаты</label>

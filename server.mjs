@@ -59,13 +59,16 @@ async function updateRates() {
       rubRates[currency] = value / nominal;
     }
 
-    const multiplier = 1 - rateDiscountPercent / 100;
     const rates = {};
     for (const from of ['RUB', 'CNY', 'USD']) {
       for (const to of ['RUB', 'CNY', 'USD']) {
-        rates[`${from}_${to}`] = Number(((rubRates[from] / rubRates[to]) * multiplier).toFixed(8));
+        rates[`${from}_${to}`] = Number((rubRates[from] / rubRates[to]).toFixed(8));
       }
     }
+
+    const purchaseMultiplier = 1 - rateDiscountPercent / 100;
+    rates.RUB_CNY = Number((rates.RUB_CNY * purchaseMultiplier).toFixed(8));
+    rates.CNY_RUB = Number((1 / rates.RUB_CNY).toFixed(8));
 
     rateState.rates = rates;
     rateState.officialRubRates = rubRates;
