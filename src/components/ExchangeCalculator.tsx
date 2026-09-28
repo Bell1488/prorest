@@ -22,6 +22,7 @@ export function ExchangeCalculator() {
   const [officialRubRates, setOfficialRubRates] = useState<RateTable | null>(null);
   const [rateUpdatedAt, setRateUpdatedAt] = useState<string | null>(null);
   const [rateStatus, setRateStatus] = useState<'loading' | 'live' | 'fallback'>('loading');
+  const [calculationMessage, setCalculationMessage] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -76,9 +77,13 @@ export function ExchangeCalculator() {
 
   const handleCalculate = useCallback(() => {
     const amount = parseFloat(fromAmount) || 0;
-    if (amount <= 0) return;
+    if (amount <= 0) {
+      setCalculationMessage('Введите сумму больше нуля.');
+      return;
+    }
     trackGoal('calculator_submit', { fromCurrency, toCurrency, method });
-  }, [fromAmount, fromCurrency, toCurrency, method]);
+    setCalculationMessage(`Расчёт обновлён: ${formatNumber(calculated.toAmount)} ${toCurrency}`);
+  }, [fromAmount, fromCurrency, toCurrency, method, calculated.toAmount]);
 
   return (
     <div id="calculator" className="relative py-10 sm:py-14 scroll-mt-20">
@@ -188,6 +193,7 @@ export function ExchangeCalculator() {
           </div>
 
           <button
+            type="button"
             onClick={handleCalculate}
             className="w-full mt-6 px-7 py-4 text-base font-semibold text-white btn-gradient rounded-xl flex items-center justify-center gap-2.5 group"
           >
@@ -195,6 +201,10 @@ export function ExchangeCalculator() {
             Рассчитать платёж
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </button>
+
+          <p role="status" aria-live="polite" className={`text-center text-sm mt-3 ${calculationMessage.includes('Введите') ? 'text-red-500' : 'text-green-600'}`}>
+            {calculationMessage}
+          </p>
 
           <p className="text-center text-xs text-gray-400 mt-3">
             Предварительный расчёт. Финальные условия подтвердит менеджер после проверки реквизитов.
