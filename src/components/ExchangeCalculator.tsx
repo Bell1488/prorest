@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { ArrowRight, ArrowLeftRight, Info, TrendingUp, Zap, Send, UserRound } from 'lucide-react';
+import { ArrowRight, ArrowDown, ArrowLeftRight, CheckCircle2, Info, TrendingUp, Zap, Send, UserRound } from 'lucide-react';
 import {
   type Currency,
   type RateTable,
@@ -202,9 +202,22 @@ export function ExchangeCalculator() {
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </button>
 
-          <p role="status" aria-live="polite" className={`text-center text-sm mt-3 ${calculationMessage.includes('Введите') ? 'text-red-500' : 'text-green-600'}`}>
-            {calculationMessage}
-          </p>
+          {calculationMessage && (
+            calculationMessage.includes('Введите') ? (
+              <p role="alert" className="text-center text-sm mt-3 text-red-500">{calculationMessage}</p>
+            ) : (
+              <div role="status" aria-live="polite" className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-[#003D99] shadow-sm animate-fade-in">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-[#0052CC]" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold">Расчёт готов</p>
+                    <p className="text-xs text-blue-800/70">{calculationMessage}. Выберите следующий шаг ниже.</p>
+                  </div>
+                  <ArrowDown className="w-5 h-5 flex-shrink-0 animate-bounce text-[#0052CC]" aria-hidden="true" />
+                </div>
+              </div>
+            )
+          )}
 
           <p className="text-center text-xs text-gray-400 mt-3">
             Предварительный расчёт. Финальные условия подтвердит менеджер после проверки реквизитов.
