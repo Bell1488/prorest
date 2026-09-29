@@ -1,7 +1,7 @@
-import { ArrowRight, ShieldCheck, Zap, Clock, TrendingUp, Phone, Send, type LucideIcon } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, Clock, TrendingUp, Phone, Send, MessageCircle, type LucideIcon } from 'lucide-react';
 import { ExchangeCalculator } from '@/components/ExchangeCalculator';
 import { trackGoal } from '@/lib/analytics';
-import { PHONE_DISPLAY, PHONE_URL, TELEGRAM_URL } from '@/lib/contacts';
+import { PHONE_DISPLAY, PHONE_URL, TELEGRAM_REVIEWS_URL, TELEGRAM_URL } from '@/lib/contacts';
 
 export function Hero() {
   return (
@@ -42,6 +42,16 @@ export function Hero() {
             >
               Узнать об услугах
             </button>
+            <a
+              href={TELEGRAM_REVIEWS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackGoal('telegram_reviews_click', { source: 'hero' })}
+              className="px-7 py-4 text-base font-semibold text-white bg-[#0A1A35] rounded-xl flex items-center justify-center gap-2.5 hover:bg-[#003D99] transition-colors"
+            >
+              <MessageCircle className="w-5 h-5" />
+              Наши отзывы
+            </a>
           </div>
 
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-sm">
