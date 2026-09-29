@@ -24,8 +24,7 @@ export function Hero() {
           </h1>
 
           <p className="mt-5 text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl mx-auto animate-fade-up delay-200">
-            Оплата поставщикам, рубли → юани, пополнение Alipay и WeChat Pay.
-            Оплата поставщикам, рубли → юани и пополнение Alipay и WeChat Pay. Рассчитайте платёж прямо сейчас — без звонков и ожидания.
+            Оплата поставщикам: рубли → юани, пополнение Alipay и WeChat Pay. Работаем с наличными в Москве и Санкт-Петербурге. Рассчитайте платёж прямо сейчас — без звонков и ожидания.
           </p>
 
           <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center animate-fade-up delay-300">
