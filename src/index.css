@@ -87,9 +87,8 @@ body {
 
 .hero-bg {
   background:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 102, 204, 0.12), transparent),
-    radial-gradient(ellipse 60% 50% at 80% 50%, rgba(0, 194, 255, 0.06), transparent),
-    linear-gradient(180deg, #F4F8FF 0%, #FFFFFF 100%);
+    linear-gradient(180deg, rgba(248, 251, 255, 0.2) 0%, rgba(255, 255, 255, 0.52) 100%),
+    url('/hero-back.png') center top / cover no-repeat;
 }
 
 .grid-pattern {
