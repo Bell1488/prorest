@@ -66,9 +66,13 @@ async function updateRates() {
       }
     }
 
-    const purchaseMultiplier = 1 - rateDiscountPercent / 100;
-    rates.RUB_CNY = Number((rates.RUB_CNY * purchaseMultiplier).toFixed(8));
-    rates.CNY_RUB = Number((1 / rates.RUB_CNY).toFixed(8));
+    // Quote each customer direction independently. A client buying CNY
+    // pays less RUB per yuan; a client selling CNY receives more RUB per yuan.
+    // These customer rates are intentionally not reciprocal.
+    const customerDiscount = 1 - rateDiscountPercent / 100;
+    const customerPremium = 1 + rateDiscountPercent / 100;
+    rates.RUB_CNY = Number((rates.RUB_CNY / customerDiscount).toFixed(8));
+    rates.CNY_RUB = Number((rates.CNY_RUB * customerPremium).toFixed(8));
 
     rateState.rates = rates;
     rateState.officialRubRates = rubRates;

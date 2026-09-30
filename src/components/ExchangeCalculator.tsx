@@ -157,14 +157,14 @@ export function ExchangeCalculator() {
 
           <p className={`mt-2 text-xs ${rateStatus === 'live' ? 'text-green-600' : 'text-gray-400'}`}>
             {rateStatus === 'live' && rateUpdatedAt
-              ? `Текущий курс ЦБ РФ. Обновлен ${new Date(rateUpdatedAt).toLocaleString('ru-RU')}`
+              ? `Курс рассчитан от данных ЦБ РФ. Обновлен ${new Date(rateUpdatedAt).toLocaleString('ru-RU')}`
               : rateStatus === 'loading'
                 ? 'Загружаем актуальный курс ЦБ РФ…'
                 : 'Курс ЦБ РФ временно недоступен. Используется резервный курс для предварительного расчета.'}
           </p>
-          {officialRate && fromCurrency === 'RUB' && toCurrency === 'CNY' && (
+          {officialRate && ((fromCurrency === 'RUB' && toCurrency === 'CNY') || (fromCurrency === 'CNY' && toCurrency === 'RUB')) && (
             <p className="mt-1 text-xs text-gray-500">
-              Курс ЦБ РФ: 1 RUB = {formatNumber(officialRate)} CNY · Курс покупки юаней: 1 RUB = {formatNumber(rate)} CNY
+              Курс ЦБ РФ: 1 {fromCurrency} = {formatNumber(officialRate)} {toCurrency} · {fromCurrency === 'RUB' ? 'Курс покупки юаней' : 'Курс продажи юаней'}: 1 {fromCurrency} = {formatNumber(rate)} {toCurrency}
             </p>
           )}
 
