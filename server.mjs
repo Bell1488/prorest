@@ -19,6 +19,7 @@ const rateUpdateIntervalMs = Math.max(Number(process.env.RATE_UPDATE_INTERVAL_MS
 const rateState = { rates: null, officialRubRates: null, updatedAt: null };
 const xmlParser = new XMLParser({ ignoreAttributes: false });
 const rateLimit = new Map();
+const minimumLeadAmountCny = 1000;
 
 function requestText(url, agent) {
   return new Promise((resolve, reject) => {
@@ -115,6 +116,10 @@ function validateLead(body) {
   const contact = clean(body.contact, 120);
   if (!contact || body.consent !== true) return { error: 'Укажите телефон или Telegram и подтвердите согласие' };
   if (clean(body.website)) return { error: 'Некорректная заявка' };
+  const amount = Number(String(body.amount ?? '').replace(',', '.'));
+  if (!Number.isFinite(amount) || amount < minimumLeadAmountCny) {
+    return { error: `Минимальная сумма заявки — ${minimumLeadAmountCny} CNY` };
+  }
   return { name, contact };
 }
 
