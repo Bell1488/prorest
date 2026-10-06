@@ -1,7 +1,7 @@
 import { ArrowRight, ShieldCheck, Zap, Clock, TrendingUp, Phone, Send, MessageCircle, type LucideIcon } from 'lucide-react';
 import { ExchangeCalculator } from '@/components/ExchangeCalculator';
 import { trackGoal } from '@/lib/analytics';
-import { PHONE_DISPLAY, PHONE_URL, TELEGRAM_REVIEWS_URL, TELEGRAM_URL } from '@/lib/contacts';
+import { PHONE_DISPLAY, PHONE_URL, TELEGRAM_CLIENTS_URL, TELEGRAM_REVIEWS_URL, TELEGRAM_URL } from '@/lib/contacts';
 
 export function Hero() {
   return (
@@ -53,6 +53,18 @@ export function Hero() {
               Наши отзывы
             </a>
           </div>
+
+          <a
+            href={TELEGRAM_CLIENTS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackGoal('telegram_clients_click', { source: 'hero' })}
+            className="mx-auto mt-4 inline-flex w-full max-w-md items-center justify-center gap-2.5 rounded-xl border border-[#229ED9]/25 bg-[#229ED9]/10 px-6 py-3.5 text-sm font-semibold text-[#087EAC] transition-colors hover:border-[#229ED9]/50 hover:bg-[#229ED9]/15 sm:w-auto sm:text-base"
+          >
+            <MessageCircle className="h-5 w-5" />
+            Чат клиентов: живые отзывы и чеки выплат
+            <ArrowRight className="h-4 w-4" />
+          </a>
 
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-sm">
             <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackGoal('telegram_click', { source: 'hero' })} className="inline-flex items-center gap-2 text-[#0052CC] font-semibold hover:underline"><Send className="w-4 h-4" /> Telegram</a>
