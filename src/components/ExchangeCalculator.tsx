@@ -32,7 +32,10 @@ export function ExchangeCalculator() {
         const response = await fetch('/api/rates', { cache: 'no-store' });
         if (!response.ok) throw new Error('Rates API unavailable');
         const data = await response.json() as { rates?: RateTable; officialRubRates?: RateTable; updatedAt?: string };
-        if (!data.rates || !active) return;
+        if (!data.rates || !active) {
+          if (active) setRateStatus('fallback');
+          return;
+        }
         setRates(data.rates);
         setOfficialRubRates(data.officialRubRates || null);
         setRateUpdatedAt(data.updatedAt || null);
@@ -62,6 +65,18 @@ export function ExchangeCalculator() {
     const to = officialRubRates[toCurrency];
     return from && to ? from / to : null;
   }, [fromCurrency, toCurrency, officialRubRates]);
+
+  const displayedRate = useMemo(() => {
+    if (fromCurrency === 'RUB' && toCurrency === 'CNY') {
+      return { from: 'CNY' as Currency, to: 'RUB' as Currency, value: rate ? 1 / rate : 0 };
+    }
+    return { from: fromCurrency, to: toCurrency, value: rate };
+  }, [fromCurrency, toCurrency, rate]);
+
+  const displayedOfficialRate = useMemo(() => {
+    if (!officialRate || !(fromCurrency === 'RUB' && toCurrency === 'CNY')) return officialRate;
+    return 1 / officialRate;
+  }, [fromCurrency, toCurrency, officialRate]);
 
   const calculated = useMemo(() => {
     const amount = parseFloat(fromAmount) || 0;
@@ -148,7 +163,7 @@ export function ExchangeCalculator() {
           <div className="mt-5 flex flex-wrap items-center gap-2 px-4 py-3 bg-gray-50 rounded-xl text-sm">
             <Info className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <span className="text-gray-500">
-              Курс: <span className="font-semibold text-gray-700">1 {fromCurrency} = {formatNumber(rate)} {toCurrency}</span>
+              Курс: <span className="font-semibold text-gray-700">1 {displayedRate.from} = {formatNumber(displayedRate.value)} {displayedRate.to}</span>
             </span>
             <span className="text-gray-300 mx-1">·</span>
             <span className="text-gray-500">
@@ -161,7 +176,7 @@ export function ExchangeCalculator() {
           </div>
 
           <p className={`mt-2 text-xs ${rateStatus === 'live' ? 'text-green-600' : 'text-gray-400'}`}>
-            {rateStatus === 'live' && rateUpdatedAt
+          {rateStatus === 'live' && rateUpdatedAt
               ? `Курс рассчитан от данных ЦБ РФ. Обновлен ${new Date(rateUpdatedAt).toLocaleString('ru-RU')}`
               : rateStatus === 'loading'
                 ? 'Загружаем актуальный курс ЦБ РФ…'
@@ -169,7 +184,7 @@ export function ExchangeCalculator() {
           </p>
           {officialRate && ((fromCurrency === 'RUB' && toCurrency === 'CNY') || (fromCurrency === 'CNY' && toCurrency === 'RUB')) && (
             <p className="mt-1 text-xs text-gray-500">
-              Курс ЦБ РФ: 1 {fromCurrency} = {formatNumber(officialRate)} {toCurrency} · {fromCurrency === 'RUB' ? 'Курс покупки юаней' : 'Курс продажи юаней'}: 1 {fromCurrency} = {formatNumber(rate)} {toCurrency}
+              Курс ЦБ РФ: 1 {displayedRate.from} = {formatNumber(displayedOfficialRate || 0)} {displayedRate.to} · Наш курс: 1 {displayedRate.from} = {formatNumber(displayedRate.value)} {displayedRate.to}
             </p>
           )}
 

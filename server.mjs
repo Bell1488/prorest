@@ -214,7 +214,15 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && req.url === '/api/rates') {
-    if (!rateState.rates) return json(res, 503, { error: 'Курс ЦБ РФ пока не загружен' });
+    if (!rateState.rates) {
+      return json(res, 200, {
+        rates: null,
+        officialRubRates: null,
+        updatedAt: null,
+        source: 'fallback',
+        error: 'Курс ЦБ РФ пока не загружен',
+      });
+    }
     return json(res, 200, {
       rates: rateState.rates,
       officialRubRates: rateState.officialRubRates,
