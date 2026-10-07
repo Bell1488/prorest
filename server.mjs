@@ -14,7 +14,8 @@ const chatId = process.env.TELEGRAM_CHAT_ID;
 const proxyUrl = process.env.SOCKS5H_PROXY;
 const telegramAgent = proxyUrl ? new SocksProxyAgent(proxyUrl) : undefined;
 const cbrAgent = proxyUrl ? new SocksProxyAgent(proxyUrl) : undefined;
-const rateDiscountPercent = Math.min(Math.max(Number(process.env.RATE_DISCOUNT_PERCENT || 10), 0), 100);
+// Positive values make the customer rate less favorable than the CBR reference rate.
+const rateMarkupPercent = Math.min(Math.max(Number(process.env.RATE_MARKUP_PERCENT ?? 1), 0), 100);
 const rateUpdateIntervalMs = Math.max(Number(process.env.RATE_UPDATE_INTERVAL_MS || 3600000), 60000);
 const rateState = { rates: null, officialRubRates: null, updatedAt: null };
 const xmlParser = new XMLParser({ ignoreAttributes: false });
@@ -67,18 +68,16 @@ async function updateRates() {
       }
     }
 
-    // Quote each customer direction independently. A client buying CNY
-    // pays less RUB per yuan; a client selling CNY receives more RUB per yuan.
-    // These customer rates are intentionally not reciprocal.
-    const customerDiscount = 1 - rateDiscountPercent / 100;
-    const customerPremium = 1 + rateDiscountPercent / 100;
-    rates.RUB_CNY = Number((rates.RUB_CNY / customerDiscount).toFixed(8));
-    rates.CNY_RUB = Number((rates.CNY_RUB * customerPremium).toFixed(8));
+    // Apply the same markup against CBR in both customer directions.
+    // This keeps the customer rate 1-2% less favorable than the reference rate.
+    const customerFactor = 1 - rateMarkupPercent / 100;
+    rates.RUB_CNY = Number((rates.RUB_CNY * customerFactor).toFixed(8));
+    rates.CNY_RUB = Number((rates.CNY_RUB * customerFactor).toFixed(8));
 
     rateState.rates = rates;
     rateState.officialRubRates = rubRates;
     rateState.updatedAt = new Date().toISOString();
-    console.log(`CBR rates updated at ${rateState.updatedAt}; discount ${rateDiscountPercent}%`);
+    console.log(`CBR rates updated at ${rateState.updatedAt}; customer markup ${rateMarkupPercent}%`);
   } catch (error) {
     console.error(`Could not update CBR rates: ${error.message}`);
   }
