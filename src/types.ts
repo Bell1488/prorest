@@ -26,9 +26,9 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
 
 // Approximate reference rates (1 unit from → to units)
 export const RATES: Record<string, number> = {
-  // Fallback customer rates: approximately 1% less favorable than the reference rates above.
-  RUB_CNY: 0.072765,
-  CNY_RUB: 13.464,
+  // Fallback customer rates: approximately 3% less favorable than the reference rates above.
+  RUB_CNY: 0.071295,
+  CNY_RUB: 13.192,
   USD_CNY: 7.25,
   CNY_USD: 0.138,
   RUB_USD: 0.0104,

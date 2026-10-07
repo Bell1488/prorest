@@ -15,7 +15,7 @@ const proxyUrl = process.env.SOCKS5H_PROXY;
 const telegramAgent = proxyUrl ? new SocksProxyAgent(proxyUrl) : undefined;
 const cbrAgent = proxyUrl ? new SocksProxyAgent(proxyUrl) : undefined;
 // Positive values make the customer rate less favorable than the CBR reference rate.
-const rateMarkupPercent = Math.min(Math.max(Number(process.env.RATE_MARKUP_PERCENT ?? 1), 0), 100);
+const rateMarkupPercent = Math.min(Math.max(Number(process.env.RATE_MARKUP_PERCENT ?? 3), 0), 100);
 const rateUpdateIntervalMs = Math.max(Number(process.env.RATE_UPDATE_INTERVAL_MS || 3600000), 60000);
 const rateState = { rates: null, officialRubRates: null, updatedAt: null };
 const xmlParser = new XMLParser({ ignoreAttributes: false });
